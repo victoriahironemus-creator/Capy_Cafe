@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capy Café - A cozy chill animal game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #e0f7fa; 
+            font-family: 'Mali', 'Arial', sans-serif; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px; 
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #b3e5fc;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            max-height: 100%; 
+            overflow-y: visible;
+        }
+
+        #game-title {
+            font-size: 2.2em;
+            font-weight: 800;
+            color: #01579b;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 3px rgba(255, 255, 255, 0.8);
+        }
+
+        #cafe {
+            display: grid;
+            border: 6px solid #01579b;
+            background-color: #81d4fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .tile {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            font-size: 1.5em;
+            position: relative; 
+        }
+
+        /* Floor Tiles */
+        .tile-F { background-color: #b3e5fc; } 
+        .tile-W { background-color: #0288d1; border: 1px solid #01579b; } 
+
+        /* Player - Capy Chef Emoji */
+        .capy-player {
+            /* Capy size adjusted */
+            font-size: 1.8em; 
+            line-height: 1;
+            white-space: nowrap; 
+            z-index: 10; 
+            position: relative; 
+            animation: move-capy 0.5s infinite alternate;
+        }
+
+        /* NPC (Customers) */
+        .capy-customer { 
+            background-color: transparent; 
+            font-size: 2.5em; 
+            line-height: 1; 
+            z-index: 5; 
+            position: relative; 
+        }
+
+        /* Cute Furniture Tiles */
+        .tile-T { background-color: #64b5f6; border: 3px solid #1976d2; border-radius: 8px; color: white; font-weight: bold; } 
+        .tile-C { background-color: #ffb74d; border: 2px solid #ff9800; border-radius: 50%; } 
+        .tile-S { background-color: #90a4ae; border: 3px solid #607d8b; border-radius: 5px; } 
+        .tile-P { background-color: #4db6ac; border: 3px solid #00897b; border-radius: 5px; } 
+        .tile-L { background-color: #1a237e; border: 3px solid #0d47a1; color: white; font-weight: bold; } 
+        .tile-I { background-color: #795548; border: 3px solid #5d4037; border-radius: 5px; color: white; } 
+        .tile-B { background-color: #00e5ff; border: 3px solid #00b8d4; border-radius: 5px; color: #1a237e; font-weight: bold; } 
+
+        @keyframes move-capy {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-3px); }
+        }
+
+        /* Panels and UI */
+        .panel {
+            background-color: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            margin-top: 15px;
+            border: 2px solid #01579b;
+        }
+        .panel-header {
+            color: #01579b;
+            border-bottom: 3px solid #01579b;
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+
+        #inventory-panel {
+            width: 100%;
+            padding: 10px 15px;
+            text-align: left;
+        }
+        
+        #inventory-list {
+            list-style: none;
+            padding: 0;
+            margin: 5px 0 0 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px 25px;
+            font-weight: 500;
+            color: #004d40;
+        }
+
+        #interaction-panel {
+            width: 100%;
+            max-width: 500px;
+            min-height: 120px;
+            border: 4px solid #01579b;
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        #dialogue-box {
+            min-height: 40px;
+            color: #004d40;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        #action-buttons button {
+            margin: 5px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            background-color: #00bcd4;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        #action-buttons button:disabled {
+            background-color: #b0bec5;
+            cursor: not-allowed;
+        }
+
+        #action-buttons button:hover:not(:disabled) {
+            background-color: #0097a7;
+        }
+
+        #how-to-play {
+            position: fixed; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 400px;
+            max-height: 90vh; 
+            overflow-y: auto;
+            z-index: 100;
+            text-align: center;
+            border: 5px solid #01579b;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="game-title">Capy Café - A cozy chill animal game</div>
+    
+    <div id="inventory-panel" class="panel">
+        <h3 class="panel-header">📝 Inventory & Status</h3>
+        <ul id="inventory-list">
+            <li>💰 Coins: <span id="coins">50</span></li>
+            <li>⬆️ Floor: <span id="current-floor">1</span></li>
+        </ul>
+        <div style="margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 5px;">
+            <p style="font-size: 0.9em; margin: 0; font-weight: bold; color: #00897b;">Ready to Serve:</p>
+            <div id="cooked-food-display" style="font-size: 0.9em;"></div>
+        </div>
+    </div>
+    
+    <div id="cafe">
+        </div>
+
+    <div id="interaction-panel">
+        <div id="dialogue-box">Move around. Press **SPACE/ENTER** to interact with Stations, press **U** (or **Shift+U**) to use the Lift (⬆️)!</div>
+        <div id="action-buttons"></div>
+    </div>
+
+    <div id="how-to-play" class="panel">
+        <h3 class="panel-header">ℹ️ How to Play</h3>
+        <p>Use the **WASD or Arrow Keys** to move your Capy Chef.</p>
+        <p>Press **Spacebar or Enter** to interact with Stations.</p>
+        <p>Press **U** or **Shift+U** to use the Lift (⬆️).</p>
+        <p>The **Stove** (🔥) lets you cook recipes you know.</p>
+        <p>The **Shop** (💎) lets you buy new recipes!</p>
+        <button onclick="document.getElementById('how-to-play').style.display='none'">Got it! (Close)</button>
+    </div>
+    
+    </div>
+
+<script>
+    // --- Game State Variables ---
+    let currentFloor = 1;
+    let playerPos = { r: 1, c: 1 };
+    let coins = 50; 
+    let inventory = {
+        'Flour': 10, 'Milk': 10, 'Eggs': 10, 'Berries': 10, 'Sugar': 10
+    };
+    let cookedItems = {};
+    let customers = []; 
+    let customerIdCounter = 1;
+
+    // --- Recipes (10 Starting Recipes) ---
+    let unlockedRecipes = [
+        { name: 'Pancake', emoji: '🥞', ingredients: { 'Flour': 1, 'Milk': 1, 'Eggs': 1 }, cost: 10, price: 20 },
+        { name: 'Berry Smoothie', emoji: '🥤', ingredients: { 'Berries': 2, 'Milk': 1 }, cost: 12, price: 25 },
+        { name: 'Waffle', emoji: '🧇', ingredients: { 'Flour': 2, 'Eggs': 1 }, cost: 15, price: 30 },
+        { name: 'Oatmeal', emoji: '🥣', ingredients: { 'Milk': 2, 'Sugar': 1 }, cost: 8, price: 15 },
+        { name: 'Crepe', emoji: '🌯', ingredients: { 'Flour': 1, 'Eggs': 2, 'Milk': 1 }, cost: 14, price: 28 },
+        { name: 'Cookie', emoji: '🍪', ingredients: { 'Flour': 1, 'Sugar': 1 }, cost: 7, price: 14 },
+        { name: 'Cupcake', emoji: '🧁', ingredients: { 'Flour': 1, 'Eggs': 1, 'Sugar': 1 }, cost: 13, price: 26 },
+        { name: 'Tea', emoji: '☕', ingredients: { 'Sugar': 1 }, cost: 5, price: 10 },
+        { name: 'Toast', emoji: '🍞', ingredients: { 'Flour': 1 }, cost: 6, price: 12 },
+        { name: 'Muffin', emoji: '🍩', ingredients: { 'Flour': 2, 'Milk': 1 }, cost: 11, price: 22 },
+    ];
+
+    // --- Unlockable Recipes/Items (For conceptual 200 total) ---
+    const allUnlockables = [
+        { type: 'recipe', name: 'Strawberry Cake', emoji: '🍰', ingredients: { 'Flour': 3, 'Eggs': 2, 'Sugar': 2 }, cost: 30, price: 60 },
+        { type: 'recipe', name: 'Lemonade', emoji: '🍋', ingredients: { 'Sugar': 2 }, cost: 15, price: 30 },
+        { type: 'ingredient', name: 'Chocolate', emoji: '🍫', price: 40, quantity: 5, uses: 'Unlocks advanced chocolate recipes' },
+    ];
+
+    let availableUnlockables = allUnlockables; 
+
+    // --- Cafe Layouts ---
+    const layouts = {
+        1: [ // Ground Floor (Kitchen & Dining)
+            ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+            ['W', 'F', 'F', 'F', 'T', 'C', 'F', 'F', 'L', 'W'],
+            ['W', 'F', 'F', 'F', 'C', 'F', 'F', 'F', 'F', 'W'],
+            ['W', 'T', 'C', 'F', 'F', 'F', 'F', 'T', 'C', 'W'],
+            ['W', 'C', 'F', 'F', 'F', 'F', 'F', 'C', 'F', 'W'],
+            ['W', 'F', 'F', 'F', 'F', 'F', 'F', 'F', 'F', 'W'],
+            ['W', 'I', 'S', 'S', 'P', 'P', 'F', 'F', 'F', 'W'],
+            ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+        ],
+        2: [ // Second Floor (Dining & Shop)
+            ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+            ['W', 'L', 'F', 'F', 'T', 'C', 'F', 'F', 'B', 'W'], // B = Shop/Boutique
+            ['W', 'F', 'F', 'F', 'C', 'F', 'F', 'F', 'F', 'W'],
+            ['W', 'T', 'C', 'F', 'F', 'F', 'F', 'T', 'C', 'W'],
+            ['W', 'C', 'F', 'F', 'F', 'F', 'F', 'C', 'F', 'W'],
+            ['W', 'F', 'F', 'F', 'F', 'F', 'F', 'F', 'F', 'W'],
+            ['W', 'F', 'F', 'F', 'F', 'F', 'F', 'F', 'F', 'W'],
+            ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+        ]
+    };
+
+    // --- Emojis and Image Data ---
+    const playerEmoji = '₍ᐢ-(ｪ)-ᐢ₎'; 
+    
+    // Grid dimensions declared globally
+    let numRows = 0; 
+    let numCols = 0; 
+
+    const visuals = {
+        'customer_types': ['🦙', '🐑', '🐻', '🦊', '🐼'], 
+        'F': ' ',
+        'W': '🧱',
+        'T': '🍽️',
+        'C': '🪑',
+        'S': '🔥',
+        'P': '➡️',
+        'L': '⬆️',
+        'I': '📦',
+        'B': '💎' // Shop
+    };
+
+    // --- Game Logic Functions ---
+
+    function updateUI() {
+        const cafeDiv = document.getElementById('cafe');
+        const currentLayout = layouts[currentFloor];
+
+        if (!currentLayout || currentLayout.length === 0) {
+             console.error("Layout for current floor is undefined or empty.");
+             // Crucial: If layout is broken, prevent further rendering errors.
+             cafeDiv.innerHTML = '<div style="color: red; padding: 20px;">ERROR: Game board layout is missing or corrupted.</div>';
+             return; 
+        }
+        
+        numRows = currentLayout.length;
+        numCols = currentLayout[0].length;
+        
+
+        cafeDiv.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
+        
+        let html = '';
+
+        for (let r = 0; r < numRows; r++) {
+            for (let c = 0; c < numCols; c++) {
+                const tileType = currentLayout[r][c] || 'W'; 
+                let content = visuals[tileType];
+                
+                // 1. Check for Customer
+                const customer = customers.find(cust => cust.r === r && cust.c === c && cust.floor === currentFloor);
+                if (customer) {
+                    content = `<span class="capy-customer">${customer.emoji}</span>`;
+                }
+                
+                // 2. Check for Player 
+                if (r === playerPos.r && c === playerPos.c) {
+                    content = `<span class="capy-player">${playerEmoji}</span>`;
+                } 
+
+                html += `<div id="tile-${r}-${c}" class="tile tile-${tileType}">${content}</div>`;
+            }
+        }
+        cafeDiv.innerHTML = html;
+        updateInventoryDisplay();
+        document.getElementById('current-floor').textContent = currentFloor;
+        document.getElementById('coins').textContent = coins;
+    }
+
+    function updateInventoryDisplay() {
+        let rawHtml = '<ul>';
+        for (const [item, count] of Object.entries(inventory)) {
+            rawHtml += `<li>${item}: ${count}</li>`;
+        }
+        rawHtml += '</ul>';
+
+        let cookedHtml = '';
+        if (Object.keys(cookedItems).length === 0) {
+            cookedHtml = 'No dishes ready.';
+        } else {
+            for (const [dish, count] of Object.entries(cookedItems)) {
+                const recipe = unlockedRecipes.find(r => r.name === dish);
+                if (recipe) { 
+                    cookedHtml += `${recipe.emoji} ${dish} x${count} `;
+                }
+            }
+        }
+        
+        document.getElementById('inventory-list').innerHTML = `
+            <li>💰 Coins: <span id="coins">${coins}</span></li>
+            <li>⬆️ Floor: <span id="current-floor">${currentFloor}</span></li>
+            <li style="margin-top: 10px; width: 100%;">📦 Ingredients: ${rawHtml}</li>
+        `;
+        document.getElementById('cooked-food-display').innerHTML = cookedHtml;
+    }
+
+    function tryMove(dr, dc) {
+        const currentLayout = layouts[currentFloor];
+        numRows = currentLayout.length;
+        numCols = currentLayout[0].length;
+
+        const newR = playerPos.r + dr;
+        const newC = playerPos.c + dc; 
+
+        if (newR >= 0 && newR < numRows && newC >= 0 && newC < numCols) {
+            const newTile = currentLayout[newR][newC];
+            
+            // Allow movement onto Floor (F) and Lift (L) tiles
+            if (newTile === 'F' || newTile === 'L') {
+                
+                const customerAtNewPos = customers.some(c => c.r === newR && c.c === newC && c.floor === currentFloor);
+                if (!customerAtNewPos) {
+                    playerPos.r = newR;
+                    playerPos.c = newC;
+                    clearInteraction();
+                } else {
+                    showMessage("There's a customer standing there!");
+                }
+            } else {
+                showMessage(`Press **SPACE/ENTER** to interact with the ${getTileName(newTile)}. Press **U** to use the Lift!`);
+            }
+        }
+        updateUI();
+    }
+
+    function getTileName(tile) {
+        switch(tile) {
+            case 'L': return 'Lift (⬆️)';
+            case 'S': return 'Stove (🔥)';
+            case 'P': return 'Serving Counter (➡️)';
+            case 'I': return 'Ingredient Cupboard (📦)';
+            case 'B': return 'Shop (💎)';
+            case 'T': return 'Table (🍽️)';
+            case 'C': return 'Chair (🪑)';
+            default: return 'object';
+        }
+    }
+
+    function spawnCustomer() {
+        // Only spawn customers on Floor 2
+        if (currentFloor !== 2) return; 
+        
+        // Limit the number of customers
+        if (customers.length >= 2) return;
+
+        const availableSeats = [];
+        const layout = layouts[2];
+        
+        // Find available chairs (C) next to a table (T)
+        for (let r = 0; r < numRows; r++) {
+            for (let c = 0; c < numCols; c++) {
+                if (layout[r][c] === 'C') {
+                    const isOccupied = customers.some(cust => cust.r === r && cust.c === c && cust.floor === 2);
+                    if (!isOccupied) {
+                        const neighbors = [{dr: 0, dc: 1}, {dr: 0, dc: -1}, {dr: 1, dc: 0}, {dr: -1, dc: 0}];
+                        const hasTable = neighbors.some(n => {
+                            const nr = r + n.dr;
+                            const nc = c + n.dc;
+                            return nr >= 0 && nr < numRows && nc >= 0 && nc < numCols && layout[nr][nc] === 'T';
+                        });
+                        if (hasTable) availableSeats.push({ r, c });
+                    }
+                }
+            }
+        }
+
+        if (availableSeats.length > 0) {
+            const { r, c } = availableSeats[Math.floor(Math.random() * availableSeats.length)];
+            const randomRecipe = unlockedRecipes[Math.floor(Math.random() * unlockedRecipes.length)];
+            const randomEmoji = visuals.customer_types[Math.floor(Math.random() * visuals.customer_types.length)];
+            
+            customers.push({
+                id: customerIdCounter++,
+                r: r,
+                c: c,
+                floor: 2,
+                emoji: randomEmoji,
+                order: randomRecipe,
+                state: 'waiting', 
+                patience: 30 
+            });
+            showMessage(`A new customer (${randomEmoji}) has arrived on **Floor 2**! Go talk to them (SPACE/ENTER) to take their order.`);
+        }
+        updateUI();
+    }
+
+    // --- Interaction Functions ---
+
+    function handleInteraction() {
+        const layout = layouts[currentFloor];
+        const { r, c } = playerPos;
+        let interacted = false;
+
+        const neighbors = [{dr: 0, dc: 1}, {dr: 0, dc: -1}, {dr: 1, dc: 0}, {dr: -1, dc: 0}];
+
+        for (const {dr, dc} of neighbors) {
+            const ir = r + dr;
+            const ic = c + dc;
+
+            if (ir >= 0 && ir < numRows && ic >= 0 && ic < numCols) {
+                const tile = layout[ir][ic];
+                
+                if (tile === 'S') { 
+                    interactStove();
+                    interacted = true;
+                    break;
+                } else if (tile === 'I') { 
+                    interactIngredients();
+                    interacted = true;
+                    break;
+                } else if (tile === 'P' && currentFloor === 1) { 
+                    interactServingCounter(ir, ic);
+                    interacted = true;
+                    break;
+                } else if (tile === 'B' && currentFloor === 2) { 
+                    interactShop();
+                    interacted = true;
+                    break;
+                } else if (currentFloor === 2 && (tile === 'C' || tile === 'T')) { 
+                    const customer = customers.find(cust => 
+                        cust.floor === 2 && 
+                        (cust.r === ir && cust.c === ic)
+                    );
+                    
+                    if (customer) {
+                        interactCustomer(ir, ic);
+                        interacted = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!interacted) {
+            showMessage("Nothing interesting nearby. Press **U** to use the Lift (⬆️) if you are next to it.");
+            clearInteraction();
+        }
+        updateUI();
+    }
+
+    function checkAndInteractLift() {
+        const layout = layouts[currentFloor];
+        const { r, c } = playerPos;
+
+        const neighbors = [{dr: 0, dc: 1}, {dr: 0, dc: -1}, {dr: 1, dc: 0}, {dr: -1, dc: 0}];
+
+        for (const {dr, dc} of neighbors) {
+            const ir = r + dr;
+            const ic = c + dc;
+
+            if (ir >= 0 && ir < numRows && ic >= 0 && ic < numCols) {
+                if (layout[ir][ic] === 'L') {
+                    interactLift();
+                    return true;
+                }
+            }
+        }
+        showMessage("You must be standing next to the **Lift (⬆️)** to use it. (Press U or Shift+U)");
+        return false;
+    }
+
+    function interactLift() {
+        clearInteraction();
+        const newFloor = currentFloor === 1 ? 2 : 1;
+        showMessage(`Moving to Floor ${newFloor}...`);
+        
+        let newLiftPos = null; 
+        let newPlayerPos = null;
+        const destLayout = layouts[newFloor];
+        
+        const destRows = destLayout.length;
+        const destCols = destLayout[0].length;
+
+        for (let r = 0; r < destRows; r++) {
+            for (let c = 0; c < destCols; c++) {
+                // Find the lift location on the destination floor
+                if (destLayout[r][c] === 'L') {
+                    newLiftPos = {r, c};
+                    break; 
+                }
+            }
+            if (newLiftPos) break;
+        }
+        
+        if (newLiftPos) {
+            const neighbors = [{dr: 0, dc: 1}, {dr: 0, dc: -1}, {dr: 1, dc: 0}, {dr: -1, dc: 0}];
+            
+            // Try to find a safe floor tile next to the lift to place the player
+            for (const {dr, dc} of neighbors) {
+                const landR = newLiftPos.r + dr;
+                const landC = newLiftPos.c + dc;
+                
+                if (landR >= 0 && landR < destRows && landC >= 0 && landC < destCols) {
+                    if (destLayout[landR][landC] === 'F') {
+                        newPlayerPos = {r: landR, c: landC};
+                        break;
+                    }
+                }
+            }
+
+            if (newPlayerPos) {
+                currentFloor = newFloor;
+                playerPos.r = newPlayerPos.r;
+                playerPos.c = newPlayerPos.c;
+                showMessage(` Welcome to **Floor ${currentFloor}**!`);
+                
+                // If moving to Floor 2, ensure a customer check happens immediately
+                if (currentFloor === 2) {
+                    spawnCustomer();
+                }
+
+            } else {
+                showMessage("Lift is accessible but the surrounding area is blocked! (Error: No safe landing spot)");
+            }
+
+        } else {
+            showMessage("Lift is out of order! (Error: Destination lift not found)");
+        }
+
+        updateUI();
+    }
+
+    function interactStove() {
+        clearInteraction();
+        showMessage("🔥 **COOKING STATION:** What would you like to cook? (Check your raw ingredients!)");
+        
+        const actionButtons = document.getElementById('action-buttons');
+
+        unlockedRecipes.forEach(recipe => {
+            let canCook = true;
+            for (const [ing, needed] of Object.entries(recipe.ingredients)) {
+                if ((inventory[ing] || 0) < needed) { 
+                    canCook = false;
+                }
+            }
+
+            const button = document.createElement('button');
+            button.textContent = `${recipe.emoji} ${recipe.name}`;
+            button.disabled = !canCook;
+            if (canCook) {
+                button.onclick = () => {
+                    cook(recipe);
+                    interactStove(); 
+                };
+            }
+            actionButtons.appendChild(button);
+        });
+        
+        const doneButton = document.createElement('button');
+        doneButton.textContent = "Done Cooking";
+        doneButton.onclick = clearInteraction;
+        actionButtons.appendChild(doneButton);
+    }
+
+    function interactIngredients() {
+        clearInteraction();
+        showMessage("📦 **INGREDIENT CUPBOARD:** You can buy more raw ingredients here for 5 coins each.");
+        
+        const ingredientsToBuy = Object.keys(inventory);
+        const actionButtons = document.getElementById('action-buttons');
+
+        ingredientsToBuy.forEach(ing => {
+            const button = document.createElement('button');
+            button.textContent = `Buy 1x ${ing} (5¢)`;
+            button.disabled = coins < 5;
+            button.onclick = () => buyIngredient(ing);
+            actionButtons.appendChild(button);
+        });
+        
+        const doneButton = document.createElement('button');
+        doneButton.textContent = "Done";
+        doneButton.onclick = clearInteraction;
+        actionButtons.appendChild(doneButton);
+    }
+
+    function interactServingCounter(ir, ic) {
+        clearInteraction();
+        
+        // Find the first customer who has placed an order (state 'ordered')
+        const orderedCustomer = customers.find(cust => cust.state === 'ordered' && cust.floor === 2);
+
+        if (!orderedCustomer) {
+            showMessage("➡️ **SERVING COUNTER:** The counter is ready, but no customers have placed an order yet. Go to **Floor 2** and interact with a customer first!");
+            return;
+        }
+
+        const dishName = orderedCustomer.order.name;
+        
+        if (cookedItems[dishName] && cookedItems[dishName] > 0) {
+            showMessage(`A customer on Floor 2 is waiting for their **${dishName}**! You have the dish.`);
+            const serveButton = document.createElement('button');
+            serveButton.textContent = `Serve 1x ${orderedCustomer.order.emoji} ${dishName}`;
+            serveButton.onclick = () => serveFood(orderedCustomer);
+            document.getElementById('action-buttons').appendChild(serveButton);
+        } else {
+            showMessage(`A customer is waiting, but you need to cook a **${dishName}** first at the Stove (🔥)!`);
+        }
+        
+        const doneButton = document.createElement('button');
+        doneButton.textContent = "Close Counter";
+        doneButton.onclick = clearInteraction;
+        document.getElementById('action-buttons').appendChild(doneButton);
+    }
+
+    function interactShop() {
+        clearInteraction();
+        showMessage("💎 **CAPY SHOP:** Welcome! Buy new recipes to expand your menu.");
+
+        availableUnlockables.forEach(item => {
+            const isRecipe = item.type === 'recipe';
+            const itemEmoji = isRecipe ? item.emoji : item.emoji;
+            const itemType = isRecipe ? 'Recipe' : 'Ingredient Pack';
+            
+            let alreadyUnlocked = unlockedRecipes.some(r => r.name === item.name);
+            let buttonText = `${itemEmoji} ${item.name} (${item.price}¢) - ${itemType}`;
+
+            const button = document.createElement('button');
+            button.textContent = alreadyUnlocked ? `${buttonText} (UNLOCKED)` : buttonText;
+            button.disabled = alreadyUnlocked || coins < item.price;
+
+            if (!alreadyUnlocked) {
+                button.onclick = () => buyUnlockable(item);
+            }
+            document.getElementById('action-buttons').appendChild(button);
+        });
+
+        const doneButton = document.createElement('button');
+        doneButton.textContent = "Done Shopping";
+        doneButton.onclick = clearInteraction;
+        document.getElementById('action-buttons').appendChild(doneButton);
+    }
+
+    function interactCustomer(ir, ic) {
+        const customer = customers.find(cust => cust.r === ir && cust.c === ic && cust.floor === 2);
+
+        if (customer && customer.state === 'waiting') {
+            clearInteraction();
+            showMessage(`${customer.emoji}: "Hello! Could I please get a **${customer.order.name}**?" (Order Taken!)`);
+            customer.state = 'ordered'; 
+            updateUI();
+            
+            // Guide player to the next step
+            setTimeout(() => {
+                showMessage(`Go to **Floor 1 (Kitchen)** to cook the **${customer.order.name}** and serve it at the Counter (➡️)!`);
+            }, 100);
+
+        } else if (customer && customer.state === 'ordered') {
+            showMessage(`${customer.emoji}: "I'm still waiting for my **${customer.order.name}**... (Patience: ${Math.max(0, customer.patience)}). Hurry!`);
+        } else if (customer && customer.state === 'eating') {
+            showMessage(`${customer.emoji}: "This is great! Just a little longer..."`);
+        } else {
+            showMessage("I think that spot is empty now.");
+        }
+    }
+    
+    // --- Cooking and Inventory Functions ---
+
+    function cook(recipe) {
+        for (const [ing, needed] of Object.entries(recipe.ingredients)) {
+            inventory[ing] -= needed;
+        }
+
+        cookedItems[recipe.name] = (cookedItems[recipe.name] || 0) + 1;
+        
+        showMessage(`You cooked one ${recipe.emoji} **${recipe.name}**! It's ready to serve. Go to the Counter (➡️).`);
+        updateUI();
+    }
+
+    function buyIngredient(ing) {
+        if (coins >= 5) {
+            coins -= 5;
+            inventory[ing] = (inventory[ing] || 0) + 1;
+            showMessage(`Bought 1x **${ing}** for 5 coins.`);
+            clearInteraction();
+            interactIngredients(); 
+        }
+        updateUI();
+    }
+
+    function buyUnlockable(item) {
+        if (coins < item.price) {
+            showMessage("You don't have enough coins!");
+            return;
+        }
+
+        coins -= item.price;
+
+        if (item.type === 'recipe') {
+            unlockedRecipes.push(item);
+            availableUnlockables = availableUnlockables.filter(u => u.name !== item.name);
+            showMessage(`New recipe **${item.name}** unlocked!`);
+        } else if (item.type === 'ingredient') {
+            inventory[item.name] = (inventory[item.name] || 0) + item.quantity;
+            availableUnlockables = availableUnlockables.filter(u => u.name !== item.name);
+            showMessage(`Received **${item.quantity}x ${item.name}**!`);
+        }
+        
+        clearInteraction();
+        interactShop(); 
+    }
+
+    function serveFood(customer) {
+        const dishName = customer.order.name;
+        const price = customer.order.price || 10; 
+
+        cookedItems[dishName] -= 1;
+        if (cookedItems[dishName] === 0) {
+            delete cookedItems[dishName];
+        }
+
+        coins += price;
+        
+        showMessage(`Served the **${dishName}** to ${customer.emoji}! Earned **${price} coins**! Now go to Floor 2 to talk to them to get them to leave!`);
+        
+        customer.state = 'eating';
+        customer.patience = 10; // 10 ticks for eating time (30 seconds real time)
+        
+        clearInteraction();
+        updateUI();
+    }
+
+    function customerTick() {
+        customers = customers.filter(customer => {
+            if (customer.floor === 2) { 
+                customer.patience--;
+
+                if (customer.state === 'ordered' && customer.patience <= 0) {
+                    showMessage(`${customer.emoji} got tired of waiting for the **${customer.order.name}** and left! No coins earned. 😢`);
+                    return false; // Remove customer
+                } 
+                
+                if (customer.state === 'eating' && customer.patience <= 0) {
+                    showMessage(`${customer.emoji} finished eating and left happily! 😊`);
+                    return false; // Remove customer
+                }
+            }
+            return true; // Keep customer
+        });
+        
+        // Only attempt to spawn if on the right floor and below max
+        if (currentFloor === 2 && customers.length < 2) {
+            spawnCustomer();
+        }
+
+        updateUI();
+    }
+
+    // --- Utility Functions ---
+
+    function showMessage(message) {
+        document.getElementById('dialogue-box').innerHTML = message;
+    }
+
+    function clearInteraction() {
+        document.getElementById('action-buttons').innerHTML = '';
+        showMessage("Move around. Press **SPACE/ENTER** to interact with Stations, press **U** (or **Shift+U**) to use the Lift (⬆️)! Customers appear on **Floor 2**.");
+    }
+
+    // --- Game Initialization and Event Listeners ---
+
+    function initGame() {
+        // Set the player to a guaranteed valid Floor tile (1, 1) on the first floor
+        currentFloor = 1;
+        playerPos = {r: 1, c: 1}; 
+        
+        if (layouts[1].length > 0) {
+            numRows = layouts[1].length;
+            numCols = layouts[1][0].length;
+        }
+        
+        updateUI(); 
+        
+        // Initial Message since there's no music prompt
+        showMessage("Welcome to Capy Café! You can start playing immediately.");
+
+        // Start customer management loop (Runs every 3000ms = 3 seconds)
+        setInterval(customerTick, 3000); 
+    }
+
+    document.addEventListener('keydown', (e) => {
+        let isMove = false;
+        switch (e.key) {
+            case 'w':
+            case 'W':
+            case 'ArrowUp':
+                tryMove(-1, 0);
+                isMove = true;
+                break;
+            case 's':
+            case 'S':
+            case 'ArrowDown':
+                tryMove(1, 0);
+                isMove = true;
+                break;
+            case 'a':
+            case 'A':
+            case 'ArrowLeft':
+                tryMove(0, -1);
+                isMove = true;
+                break;
+            case 'd':
+            case 'D':
+            case 'ArrowRight':
+                tryMove(0, 1);
+                isMove = true;
+                break;
+            case ' ':
+            case 'Enter':
+                e.preventDefault(); 
+                handleInteraction();
+                break;
+            case 'u':
+            case 'U': // Handles both 'u' and 'Shift+u'
+                e.preventDefault();
+                checkAndInteractLift(); 
+                break;
+        }
+        if (isMove) {
+            clearInteraction(); 
+        }
+    });
+
+    // Start the game immediately
+    initGame();
+</script>
+
+</body>
+</html>
